@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "outlook": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "${workspaceFolder}/packages/mcp-server/src/index.ts"],
+      "env": {
+        "OUTLOOK_MCP_CLIENT_ID": "ab2d883c-b77b-4bcc-ac96-6bc75f66b3b4"
+      }
+    }
+  }
+}

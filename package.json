@@ -1,0 +1,7 @@
+{
+  "name": "outlook-mcp",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

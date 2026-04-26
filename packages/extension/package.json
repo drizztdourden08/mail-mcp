@@ -1,0 +1,60 @@
+{
+  "name": "outlook-mcp-extension",
+  "displayName": "Outlook MCP",
+  "description": "Companion extension for the Outlook MCP server — provides embedded webview for auth, inbox review, and batch actions.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "outlook-mcp",
+          "title": "Outlook",
+          "icon": "$(mail)"
+        }
+      ]
+    },
+    "views": {
+      "outlook-mcp": [
+        {
+          "type": "webview",
+          "id": "outlook-mcp.panel",
+          "name": "Outlook"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "outlook-mcp.login",
+        "title": "Outlook MCP: Sign In"
+      },
+      {
+        "command": "outlook-mcp.openPanel",
+        "title": "Outlook MCP: Open Panel"
+      },
+      {
+        "command": "outlook-mcp.reviewInbox",
+        "title": "Outlook MCP: Review Inbox"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^5.1.4"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.96.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  }
+}
