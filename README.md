@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://marketplace.visualstudio.com/items?itemName=Drizztdourden.mail-mcp-extension"><img src="https://img.shields.io/visual-studio-marketplace/v/Drizztdourden.mail-mcp-extension?label=VS%20Code%20Marketplace&color=0078d7" alt="VS Code Marketplace" /></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=Drizztdourden.mail-mcp-extension"><img src="https://img.shields.io/badge/VS%20Code%20Marketplace-Mail%20MCP-0078d7?logo=visual-studio-code" alt="VS Code Marketplace" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/drizztdourden08/mail-mcp?color=blue" alt="License: MIT" /></a>
   <a href="https://github.com/drizztdourden08/mail-mcp/issues"><img src="https://img.shields.io/github/issues/drizztdourden08/mail-mcp" alt="Issues" /></a>
 </p>
@@ -31,8 +31,7 @@ Mail MCP is a **Model Context Protocol (MCP) server** and **VS Code extension** 
 | **24 MCP Tools** | List, search, read, move, delete, unsubscribe, cache, and review emails |
 | **Human-in-the-Loop** | AI proposes actions → you approve/reject in a visual checklist |
 | **High-Performance Cache** | Sync 500+ emails to memory for instant search & filtering |
-| **Device Code Auth** | Secure OAuth 2.0 sign-in — code auto-copied, browser auto-opened |
-| **Provider-Agnostic** | Plugin architecture — Exchange today, more providers tomorrow |
+| **Provider-Agnostic** | Plugin architecture — connect any supported email provider |
 | **Built-in Docs** | Overview, setup guides, tool reference, and workflows in the panel |
 | **Custom Instructions** | Override or extend the AI's behavior from extension settings |
 
@@ -123,39 +122,17 @@ Configure auto-copy device code, auto-open browser, review panel focus, MCP conf
 
 Install **Mail MCP** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Drizztdourden.mail-mcp-extension).
 
-### 2. Configure Your Email Provider
+### 2. Set Up Your Provider
 
-You need an Azure AD app registration for Microsoft Exchange:
+Open the Mail MCP sidebar panel → **Docs** tab → **Provider Setup** and follow the guide for your email provider.
 
-1. Go to [Azure Portal](https://portal.azure.com) → Azure Active Directory → App registrations
-2. Create a new registration with these API permissions: `User.Read`, `Mail.Read`, `Mail.ReadWrite`
-3. Enable **Device Code Flow**: Authentication → Allow public client flows → Yes
-4. Copy the **Application (client) ID**
-
-See the **Docs** tab in the Mail MCP panel for detailed step-by-step instructions.
-
-### 3. Set Your Client ID
-
-**Option A** — VS Code Settings:
-> Settings → Extensions → Mail MCP → Client ID
-
-**Option B** — Environment variable:
-```env
-MAIL_MCP_CLIENT_ID=your-client-id-here
-```
-
-**Option C** — `.env` file in the project root:
-```env
-MAIL_MCP_CLIENT_ID=your-client-id-here
-```
-
-### 4. Connect
+### 3. Connect
 
 1. Open the Mail MCP sidebar panel (envelope icon in the activity bar)
-2. Click **Connect** and complete the sign-in flow in your browser
+2. Click **Connect** and complete the sign-in flow
 3. The MCP server starts automatically
 
-### 5. Use with Your AI
+### 4. Use with Your AI
 
 Once connected, your AI assistant can access your email through MCP tools. Try:
 
@@ -163,6 +140,22 @@ Once connected, your AI assistant can access your email through MCP tools. Try:
 - *"Help me clean up my inbox — find junk and promotions"*
 - *"Find all emails from my bank and move them to a Finance folder"*
 - *"Unsubscribe me from mailing lists I never read"*
+
+## 📬 Supported Providers
+
+| Provider | Auth Method | Status | Setup Guide |
+|----------|------------|--------|-------------|
+| **Microsoft Exchange** (Outlook, Microsoft 365) | [Device Code Flow](packages/mcp-server/src/providers/exchange/setup.md) | ✅ Available | [Setup Guide](packages/mcp-server/src/providers/exchange/setup.md) |
+
+> More providers can be added through the plugin architecture. See [Contributing](#-contributing) if you'd like to add one.
+
+## 🔐 Supported Authentication Methods
+
+| Method | Description |
+|--------|-------------|
+| **Device Code Flow** | OAuth 2.0 flow for devices with limited input — you sign in via a browser using a short code. The code is auto-copied and the browser auto-opens. |
+
+> Additional authentication methods (OAuth redirect, API keys, etc.) may be added by providers.
 
 ## 🔧 MCP Client Configuration
 
@@ -196,7 +189,7 @@ Any client that speaks the Model Context Protocol can connect. Point it at the s
 node packages/mcp-server/dist/index.js
 ```
 
-With the `MAIL_MCP_CLIENT_ID` environment variable set.
+With the required environment variables set for your provider.
 
 ## 🛡️ Security & Safety
 
@@ -208,39 +201,6 @@ While Mail MCP's default instructions tell the AI to use the review workflow bef
 - **Revoke access** if the AI misbehaves
 - **Keep backups** of important emails
 - Use AI clients that respect tool safety boundaries
-
-## 📦 Project Structure
-
-```
-mail-mcp/
-├── packages/
-│   ├── extension/    # VS Code extension (TypeScript)
-│   ├── mcp-server/   # MCP server (TypeScript, ESM)
-│   └── webview/      # React webview UI (Vite)
-├── test/             # UI tests (Playwright)
-├── .env.example      # Environment variable template
-└── package.json      # Workspace root (npm workspaces)
-```
-
-## 🧑‍💻 Development
-
-```bash
-# Install dependencies
-npm install
-
-# Build everything
-npm run compile -w packages/extension
-npm run build -w packages/mcp-server
-npm run build -w packages/webview
-
-# Watch mode (extension)
-npm run watch -w packages/extension
-
-# Watch mode (webview)
-npm run dev -w packages/webview
-```
-
-Press **F5** in VS Code to launch the Extension Development Host.
 
 ## 🤝 Contributing
 

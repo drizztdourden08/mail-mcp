@@ -13,8 +13,7 @@ Mail MCP is an MCP (Model Context Protocol) server + VS Code extension that lets
 - **24 MCP Tools** — List, search, read, move, delete, unsubscribe, cache, and review emails
 - **Human-in-the-Loop Review** — AI proposes actions, you approve or reject in a visual checklist before anything happens
 - **High-Performance Cache** — Sync 500+ emails to memory for instant regex search & filtering without API calls
-- **Secure Device Code Auth** — OAuth 2.0 sign-in with auto-copy code and auto-open browser
-- **Provider-Agnostic** — Plugin architecture supporting Microsoft Exchange today, more providers coming
+- **Provider-Agnostic** — Plugin architecture with built-in setup guides for each provider
 - **Built-in Documentation** — Overview, setup guides, tool reference, and workflow examples right in the panel
 - **Custom Instructions** — Override or extend the AI's default behavior from extension settings
 
@@ -62,31 +61,28 @@ Configure auto-copy, auto-open browser, review focus, MCP config, and custom AI 
 
 ## Getting Started
 
-### 1. Azure AD App Registration
+### 1. Install the Extension
 
-You need an app registration for your Microsoft Exchange account:
+Install **Mail MCP** from the VS Code Marketplace.
 
-1. Go to [Azure Portal](https://portal.azure.com) → Azure Active Directory → App registrations
-2. Create a new registration
-3. Add API permissions: `User.Read`, `Mail.Read`, `Mail.ReadWrite`
-4. Enable Device Code Flow: Authentication → Allow public client flows → **Yes**
-5. Copy the **Application (client) ID**
+### 2. Set Up Your Provider
 
-### 2. Configure the Client ID
-
-Set your client ID using one of these methods:
-
-- **VS Code Settings**: Settings → Extensions → Mail MCP → **Client ID**
-- **Environment variable**: `MAIL_MCP_CLIENT_ID=your-client-id`
-- **`.env` file** in the workspace root
+Open the Mail MCP sidebar panel → **Docs** tab → **Provider Setup** and follow the guide for your email provider.
 
 ### 3. Connect
 
 1. Open the Mail MCP panel (envelope icon in the activity bar)
 2. Click **Connect**
-3. A device code appears — it's auto-copied to your clipboard
-4. Sign in at the URL that auto-opens in your browser
-5. Done! The MCP server starts and your AI can access your email
+3. Complete the sign-in flow for your provider
+4. Done! The MCP server starts and your AI can access your email
+
+## Supported Providers
+
+| Provider | Auth Method | Setup Guide |
+|----------|------------|-------------|
+| **Microsoft Exchange** (Outlook, Microsoft 365) | Device Code Flow | See **Docs → Provider Setup** in the extension |
+
+> More providers can be added through the plugin architecture.
 
 ## Example Workflows
 
@@ -101,7 +97,7 @@ Set your client ID using one of these methods:
 
 | Setting | Description | Default |
 |---------|-------------|---------|
-| `mail-mcp.clientId` | Azure AD Application (client) ID | — |
+| `mail-mcp.clientId` | Provider application/client ID | — |
 | `mail-mcp.autoCopyCode` | Auto-copy device code to clipboard | `true` |
 | `mail-mcp.autoOpenBrowser` | Auto-open browser for sign-in | `true` |
 | `mail-mcp.focusOnReview` | Focus the panel when AI creates a review | `true` |
@@ -111,7 +107,7 @@ Set your client ID using one of these methods:
 
 - **VS Code** 1.96+
 - **Node.js** 18+
-- A Microsoft Exchange / Outlook account with an Azure AD app registration
+- A supported email provider (see Supported Providers above)
 
 ## Security
 
