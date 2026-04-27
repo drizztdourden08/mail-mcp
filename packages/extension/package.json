@@ -2,7 +2,7 @@
   "name": "mail-mcp-extension",
   "displayName": "Mail MCP",
   "description": "Give AI assistants secure, human-in-the-loop access to your email. Search, review, delete, move, and unsubscribe — all through an MCP server with a built-in approval UI.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "Drizztdourden",
   "author": {
     "name": "Drizztdourden_",
@@ -123,12 +123,14 @@
   "scripts": {
     "vscode:prepublish": "npm run package",
     "clean": "node -e \"fs=require('fs');p=require('path');d='out';fs.readdirSync(d).filter(f=>f!=='extension.js').forEach(f=>fs.unlinkSync(p.join(d,f)))\"",
-    "compile": "npm run check-types && node esbuild.js",
+    "bundle-server": "node esbuild-server.js",
+    "copy-webview": "node -e \"const fs=require('fs');const p=require('path');fs.mkdirSync('dist/webview',{recursive:true});for(const f of fs.readdirSync('../webview/dist'))fs.copyFileSync(p.join('../webview/dist',f),p.join('dist/webview',f))\"",
+    "compile": "npm run check-types && node esbuild.js && npm run bundle-server && npm run copy-webview",
     "check-types": "tsc --noEmit",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --preserveWatchOutput",
-    "package": "npm run check-types && node esbuild.js --production && npm run clean"
+    "package": "npm run check-types && node esbuild.js --production && npm run clean && node esbuild-server.js --production && npm run copy-webview"
   },
   "dependencies": {
     "@azure/msal-node": "^5.1.4",

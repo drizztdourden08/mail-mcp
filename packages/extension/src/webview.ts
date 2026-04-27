@@ -75,7 +75,7 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [
-        vscode.Uri.joinPath(this.extensionUri, "..", "webview", "dist"),
+        vscode.Uri.joinPath(this.extensionUri, "dist", "webview"),
       ],
     };
 
@@ -518,7 +518,7 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
   }
 
   private getHtml(webview: vscode.Webview): string {
-    const distUri = vscode.Uri.joinPath(this.extensionUri, "..", "webview", "dist");
+    const distUri = vscode.Uri.joinPath(this.extensionUri, "dist", "webview");
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(distUri, "index.js"));
     const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(distUri, "index.css"));
 

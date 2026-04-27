@@ -29,7 +29,7 @@ export class ServerManager {
     output: vscode.OutputChannel,
   ) {
     this.output = output;
-    this.serverScript = path.join(context.extensionPath, "..", "mcp-server", "dist", "index.js");
+    this.serverScript = path.join(context.extensionPath, "dist", "mcp-server", "index.js");
     context.subscriptions.push({ dispose: () => this.dispose() });
   }
 
