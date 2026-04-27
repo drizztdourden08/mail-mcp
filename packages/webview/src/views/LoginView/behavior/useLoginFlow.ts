@@ -60,5 +60,12 @@ export function useLoginFlow(postMessage: PostMessage, onMessage: OnMessage, ini
     }
   }, [connect, connectingProvider]);
 
-  return { status, challenge, error, connectingProvider, connect, retry };
+  const cancel = useCallback(() => {
+    setStatus("idle");
+    setChallenge(null);
+    setConnectingProvider(null);
+    setError(null);
+  }, []);
+
+  return { status, challenge, error, connectingProvider, connect, retry, cancel };
 }

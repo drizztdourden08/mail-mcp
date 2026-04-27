@@ -5,6 +5,7 @@ src/**
 **/*.map
 tsconfig.json
 .eslintrc.json
+esbuild.js
 out/**/*.d.ts
 out/**/*.map
 ../webview/src/**
@@ -12,3 +13,5 @@ out/**/*.map
 ../mcp-server/src/**
 ../mcp-server/node_modules/**
 ../../node_modules/**
+../../.env
+../../.env.example

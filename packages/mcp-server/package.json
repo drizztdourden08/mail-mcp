@@ -1,6 +1,8 @@
 {
   "name": "@mail-mcp/server",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "MCP server for AI-powered email access with provider-agnostic architecture.",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

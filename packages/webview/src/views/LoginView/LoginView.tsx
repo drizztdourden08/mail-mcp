@@ -15,12 +15,14 @@ interface Props {
 }
 
 export default function LoginView({ postMessage, onMessage, initialChallenge, providers, onNavigateSetup }: Props) {
-  const { status, challenge, error, connectingProvider, connect, retry } =
+  const { status, challenge, error, connectingProvider, connect, retry, cancel } =
     useLoginFlow(postMessage, onMessage, initialChallenge);
 
   return (
     <div className="login-view">
-      <Text>Sign in to a provider to manage your emails.</Text>
+      {(status === "idle" || status === "error") && (
+        <Text>Sign in to a provider to manage your emails.</Text>
+      )}
 
       {status === "idle" && providers.length > 0 && (
         <div className="login-view__providers">
@@ -43,11 +45,14 @@ export default function LoginView({ postMessage, onMessage, initialChallenge, pr
       )}
 
       {(status === "connecting" || status === "waiting") && (
-        <DeviceCodeAuth
-          challenge={challenge}
-          postMessage={postMessage}
-          waiting={status === "connecting"}
-        />
+        <>
+          <DeviceCodeAuth
+            challenge={challenge}
+            postMessage={postMessage}
+            waiting={status === "connecting"}
+          />
+          <Button variant="ghost" onClick={cancel} style={{ marginTop: 12 }}>Cancel</Button>
+        </>
       )}
 
       {status === "error" && (

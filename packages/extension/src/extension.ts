@@ -31,13 +31,10 @@ export function activate(context: vscode.ExtensionContext) {
   // Commands
   context.subscriptions.push(
     vscode.commands.registerCommand("mail-mcp.login", () => {
-      webviewProvider.postToWebview({ type: "navigate", view: "login" });
-    }),
-    vscode.commands.registerCommand("mail-mcp.openPanel", () => {
+      webviewProvider.postToWebview({ type: "navigate", view: "home" });
       vscode.commands.executeCommand("mail-mcp.panel.focus");
     }),
-    vscode.commands.registerCommand("mail-mcp.reviewInbox", () => {
-      webviewProvider.postToWebview({ type: "navigate", view: "inbox-review" });
+    vscode.commands.registerCommand("mail-mcp.openPanel", () => {
       vscode.commands.executeCommand("mail-mcp.panel.focus");
     }),
     vscode.commands.registerCommand("mail-mcp.startServer", () => serverManager.start()),
@@ -50,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
     ipcClient,
     (loggedIn) => webviewProvider.postToWebview({ type: "auth-status", loggedIn }),
     (code) => {
-      vscode.commands.executeCommand("outlook-mcp.panel.focus");
+      vscode.commands.executeCommand("mail-mcp.panel.focus");
       webviewProvider.postToWebview({ type: "auth-challenge", ...code });
     },
   );

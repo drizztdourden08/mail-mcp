@@ -1,6 +1,14 @@
 import crypto from "node:crypto";
+import { z } from "zod";
 import type { Review, ReviewColumn, ReviewItem, ReviewStatus, ApprovalResult } from "../types/review.js";
 import type { IpcServer } from "./ipc-server.js";
+
+const ReviewRespondBody = z.object({
+  id: z.string().min(1),
+  approved: z.boolean(),
+  selectedIds: z.array(z.string()),
+});
+const ReviewIdBody = z.object({ id: z.string().min(1) });
 
 export class ReviewManager {
   private reviews = new Map<string, Review>();
@@ -72,18 +80,7 @@ export class ReviewManager {
     return review;
   }
 
-  finalize(id: string, selectedByDefault?: boolean): Review {
-    const review = this.reviews.get(id);
-    if (!review) throw new Error("Review not found: " + id);
-    if (review.status !== "building") throw new Error(`Cannot finalize review in "${review.status}" state`);
-    if (selectedByDefault !== undefined) {
-      for (const item of review.items) {
-        item.selected = selectedByDefault;
-      }
-    }
-    review.status = "pending";
-    return review;
-  }
+
 
   respond(id: string, approved: boolean, selectedIds: string[]): void {
     const review = this.reviews.get(id);
@@ -158,13 +155,13 @@ export class ReviewManager {
     ipc.registerHandler("/reviews/all", async () => this.getAll());
 
     ipc.registerHandler("/reviews/respond", async (body: unknown) => {
-      const { id, approved, selectedIds } = body as { id: string; approved: boolean; selectedIds: string[] };
+      const { id, approved, selectedIds } = ReviewRespondBody.parse(body);
       this.respond(id, approved, selectedIds);
       return { ok: true };
     });
 
     ipc.registerHandler("/reviews/close", async (body: unknown) => {
-      const { id } = body as { id: string };
+      const { id } = ReviewIdBody.parse(body);
       this.close(id);
       return { ok: true };
     });

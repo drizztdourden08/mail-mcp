@@ -1,8 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 
 const vscodeApi = acquireVsCodeApi();
-// Expose globally so non-React code (markdown parser) can forward debug logs
-(window as any).__vscodeApi = vscodeApi;
 
 type MessageHandler = (msg: Record<string, unknown>) => void;
 
@@ -12,9 +10,6 @@ export function useVSCode() {
   useEffect(() => {
     const listener = (event: MessageEvent) => {
       const msg = event.data;
-      if (msg && msg.type && msg.type !== "debug-log") {
-        console.log(`[dbg] ext→wv message: ${msg.type}`);
-      }
       handlers.current.forEach((h) => h(msg));
     };
     window.addEventListener("message", listener);

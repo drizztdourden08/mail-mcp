@@ -8,8 +8,6 @@ export function useProviderStatus(postMessage: PostMessage, onMessage: OnMessage
   useEffect(() => {
     return onMessage((msg) => {
       if (msg.type === "auth-status") {
-        console.log(`[dbg] ProviderStatusPanel: auth-status loggedIn=${msg.loggedIn}, providerId=${msg.providerId}`);
-        try { (window as any).__vscodeApi?.postMessage({ type: "debug-log", args: [`ProviderStatusPanel: auth-status update loggedIn=${msg.loggedIn}`] }); } catch {}
         setProviders((prev) => {
           // Update or add provider status
           const providerId = (msg.providerId as string) ?? "exchange";

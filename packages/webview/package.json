@@ -1,6 +1,8 @@
 {
   "name": "@mail-mcp/webview",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "React-based webview UI for Mail MCP — auth, review panels, settings, and documentation.",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

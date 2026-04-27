@@ -5,6 +5,7 @@ export interface AuthChallenge {
   code: string;
   uri: string;
   source: string;
+  expiresIn?: number;
 }
 
 export class AuthBridge {
@@ -28,7 +29,7 @@ export class AuthBridge {
         if (!res.ok) return;
         const data = await res.json() as {
           loggedIn: boolean;
-          pending: { code: string; uri: string } | null;
+          pending: { code: string; uri: string; expiresIn?: number } | null;
         };
 
         if (data.loggedIn !== this.lastReportedLoggedIn) {
@@ -48,6 +49,7 @@ export class AuthBridge {
           code: data.pending.code,
           uri: data.pending.uri,
           source: "mcp",
+          expiresIn: data.pending.expiresIn,
         });
 
         if (cfg.get<boolean>("autoCopyCode", true)) {

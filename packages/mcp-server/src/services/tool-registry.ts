@@ -23,10 +23,6 @@ export class ToolRegistry {
     return this.tools.size;
   }
 
-  getNames(): string[] {
-    return [...this.tools.keys()];
-  }
-
   bindToServer(server: McpServer, ctx: ToolContext): void {
     for (const tool of this.tools.values()) {
       const handler = AUTH_TOOLS.has(tool.name)

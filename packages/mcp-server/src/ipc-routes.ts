@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { IpcServer } from "./services/ipc-server.js";
 import type { ReviewManager } from "./services/review-manager.js";
 import type { McpSessionManager } from "./services/mcp-session-manager.js";
@@ -6,6 +7,17 @@ import type { AuthProvider } from "./providers/auth.js";
 import type { MailProvider } from "./providers/mail.js";
 import type { AuthToolState } from "./types/tool.js";
 import { MCP_INSTRUCTIONS } from "./instructions.js";
+
+// ── IPC request schemas ──────────────────────────────────────
+
+const CustomInstructionsBody = z.object({ content: z.string().optional() });
+const MessagesBody = z.object({ folder: z.string().optional(), count: z.number().int().positive().optional() });
+const IdBody = z.object({ id: z.string().min(1) });
+const MoveBody = z.object({ id: z.string().min(1), folder: z.string().min(1) });
+
+function parse<T>(schema: z.ZodType<T>, body: unknown): T {
+  return schema.parse(body);
+}
 
 export function registerIpcRoutes(
   ipc: IpcServer,
@@ -24,7 +36,7 @@ export function registerIpcRoutes(
   ipc.registerHandler("/instructions", async () => ({ content: MCP_INSTRUCTIONS }));
 
   ipc.registerHandler("/instructions/custom", async (body: unknown) => {
-    const { content } = (body as { content?: string }) ?? {};
+    const { content } = parse(CustomInstructionsBody, body);
     sessions.setCustomInstructions(content ?? "");
     return { ok: true };
   });
@@ -45,11 +57,7 @@ export function registerIpcRoutes(
     return { loggedIn: false };
   });
 
-  ipc.registerHandler("/auth/login", async (body: unknown) => {
-    const { providerId } = (body as { providerId?: string }) ?? {};
-    // Currently single-provider; providerId reserved for future multi-provider routing
-    void providerId;
-
+  ipc.registerHandler("/auth/login", async () => {
     const loggedIn = await auth.isLoggedIn();
     if (loggedIn) {
       try {
@@ -88,32 +96,32 @@ export function registerIpcRoutes(
 
   // Mail
   ipc.registerHandler("/messages", async (body: unknown) => {
-    const { folder, count } = body as { folder?: string; count?: number };
+    const { folder, count } = parse(MessagesBody, body);
     return mail.listMessages(folder ?? "Inbox", count ?? 20);
   });
 
   ipc.registerHandler("/message", async (body: unknown) => {
-    const { id } = body as { id: string };
+    const { id } = parse(IdBody, body);
     return mail.getMessage(id);
   });
 
   ipc.registerHandler("/delete", async (body: unknown) => {
-    const { id } = body as { id: string };
+    const { id } = parse(IdBody, body);
     return mail.deleteMessage(id);
   });
 
   ipc.registerHandler("/move", async (body: unknown) => {
-    const { id, folder } = body as { id: string; folder: string };
+    const { id, folder } = parse(MoveBody, body);
     return mail.moveMessage(id, folder);
   });
 
   ipc.registerHandler("/unsubscribe-info", async (body: unknown) => {
-    const { id } = body as { id: string };
+    const { id } = parse(IdBody, body);
     return mail.getUnsubscribeInfo(id);
   });
 
   ipc.registerHandler("/unsubscribe", async (body: unknown) => {
-    const { id } = body as { id: string };
+    const { id } = parse(IdBody, body);
     const info = await mail.getUnsubscribeInfo(id);
     const result = await mail.executeUnsubscribe(info);
     return { result };

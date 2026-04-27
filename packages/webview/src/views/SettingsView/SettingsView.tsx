@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import Title from "../../components/primitive/Title/Title";
 import Text from "../../components/primitive/Text/Text";
 import Button from "../../components/primitive/Button/Button";
 import Markdown from "../../components/primitive/Markdown/Markdown";
 import SettingToggle from "../../components/composite/SettingToggle/SettingToggle";
 import { useSettings } from "./behavior/useSettings";
+import { useCustomInstructions } from "./behavior/useCustomInstructions";
 import type { PostMessage, OnMessage } from "../../types";
 import "./SettingsView.css";
 
@@ -17,46 +18,8 @@ type SettingsTab = "general" | "mcp-config" | "instructions" | "custom-instructi
 
 export default function SettingsView({ postMessage, onMessage }: Props) {
   const { settings, update } = useSettings(postMessage, onMessage);
+  const { defaultInstructions, customInstructions, onChange: onCustomChange, savedMsg } = useCustomInstructions(postMessage, onMessage);
   const [tab, setTab] = useState<SettingsTab>("general");
-  const [defaultInstructions, setDefaultInstructions] = useState<string>("");
-  const [customInstructions, setCustomInstructions] = useState<string>("");
-  const [savedMsg, setSavedMsg] = useState<string>("");
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isLocalEdit = useRef(false);
-
-  // Fetch instructions from MCP server
-  useEffect(() => {
-    postMessage({ type: "get-instructions" });
-    postMessage({ type: "get-custom-instructions" });
-    return onMessage((msg) => {
-      if (msg.type === "instructions") {
-        setDefaultInstructions(msg.content as string);
-      }
-      if (msg.type === "custom-instructions") {
-        // Only update if not a local edit (avoid clobbering mid-typing)
-        if (!isLocalEdit.current) {
-          setCustomInstructions(msg.content as string);
-        }
-      }
-    });
-  }, [onMessage, postMessage]);
-
-  const saveCustomInstructions = useCallback((content: string) => {
-    postMessage({ type: "set-custom-instructions", content });
-    setSavedMsg("Saved");
-    setTimeout(() => setSavedMsg(""), 1500);
-    // Allow external updates again after save
-    setTimeout(() => { isLocalEdit.current = false; }, 200);
-  }, [postMessage]);
-
-  const onCustomChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    isLocalEdit.current = true;
-    setCustomInstructions(val);
-    // Debounce auto-save (800ms)
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => saveCustomInstructions(val), 800);
-  }, [saveCustomInstructions]);
 
   const addMcpConfig = useCallback((client: string) => {
     postMessage({ type: "add-mcp-config", client });

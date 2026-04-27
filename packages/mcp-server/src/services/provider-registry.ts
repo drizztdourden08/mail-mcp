@@ -10,8 +10,4 @@ export class ProviderRegistry {
   getAll(): ProviderInfo[] {
     return this.providers;
   }
-
-  get(id: string): ProviderInfo | undefined {
-    return this.providers.find((p) => p.id === id);
-  }
 }

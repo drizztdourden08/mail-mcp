@@ -1,9 +1,9 @@
-import { useState, useCallback } from "react";
 import Text from "../../components/primitive/Text/Text";
 import Title from "../../components/primitive/Title/Title";
 import Button from "../../components/primitive/Button/Button";
 import Icon from "../../components/primitive/Icon/Icon";
 import Markdown from "../../components/primitive/Markdown/Markdown";
+import { useDocsNavigation } from "./behavior/useDocsNavigation";
 import { docSections } from "../../docs";
 import type { ProviderInfo } from "../../types";
 import "./DocsView.css";
@@ -13,19 +13,8 @@ interface Props {
   initialProviderId?: string | null;
 }
 
-type ActivePage =
-  | { type: "toc" }
-  | { type: "doc"; sectionId: string }
-  | { type: "provider"; providerId: string };
-
 export default function DocsView({ providers, initialProviderId }: Props) {
-  const [activePage, setActivePage] = useState<ActivePage>(
-    initialProviderId
-      ? { type: "provider", providerId: initialProviderId }
-      : { type: "toc" }
-  );
-
-  const goBack = useCallback(() => setActivePage({ type: "toc" }), []);
+  const { activePage, goBack, openDoc, openProvider } = useDocsNavigation(initialProviderId);
 
   // ── Doc detail page ──
   if (activePage.type === "doc") {
@@ -72,7 +61,7 @@ export default function DocsView({ providers, initialProviderId }: Props) {
           <div
             key={section.id}
             className="docs-view__row"
-            onClick={() => setActivePage({ type: "doc", sectionId: section.id })}
+            onClick={() => openDoc(section.id)}
           >
             <span className="docs-view__row-icon">📄</span>
             <span className="docs-view__row-label">{section.title}</span>
@@ -91,7 +80,7 @@ export default function DocsView({ providers, initialProviderId }: Props) {
               <div
                 key={p.id}
                 className="docs-view__row"
-                onClick={() => setActivePage({ type: "provider", providerId: p.id })}
+                onClick={() => openProvider(p.id)}
               >
                 <Icon svg={p.svgLogo} size={22} className="docs-view__provider-icon" />
                 <div className="docs-view__provider-info">

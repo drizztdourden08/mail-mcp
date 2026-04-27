@@ -1,7 +1,7 @@
 // ── Shared types, constants, and interfaces ──
 
 // Navigation
-export type View = "home" | "login" | "reviews" | "settings" | "docs";
+export type View = "home" | "settings" | "docs";
 
 // Provider registry
 export type AuthStrategy = "device-code" | "oauth-redirect" | "api-key";

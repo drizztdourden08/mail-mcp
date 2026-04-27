@@ -4,15 +4,24 @@ import * as path from "path";
 import * as os from "os";
 import { spawn, execSync, type ChildProcess } from "child_process";
 import type { IpcClient } from "./ipc-client";
+import * as dotenv from "dotenv";
 
 const IPC_PORT_FILE = path.join(os.homedir(), ".mail-mcp", "ipc-port");
-const CLIENT_ID = "ab2d883c-b77b-4bcc-ac96-6bc75f66b3b4";
+
+// Load .env from workspace root (three levels up from out/)
+dotenv.config({ path: path.join(__dirname, "..", "..", "..", ".env") });
+
+function getClientId(): string {
+  const cfg = vscode.workspace.getConfiguration("mail-mcp");
+  return cfg.get<string>("clientId", "") || process.env.MAIL_MCP_CLIENT_ID || "";
+}
 
 export class ServerManager {
   private process: ChildProcess | null = null;
   private readonly output: vscode.OutputChannel;
   private readonly serverScript: string;
   private portDiscoveryInterval?: ReturnType<typeof setInterval>;
+  private restartTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -26,10 +35,6 @@ export class ServerManager {
 
   isRunning(): boolean {
     return this.process !== null && !this.process.killed;
-  }
-
-  getScriptPath(): string {
-    return this.serverScript;
   }
 
   /** Start the MCP server (auto-detect if one is already running). */
@@ -91,7 +96,8 @@ export class ServerManager {
   restart(): void {
     this.output.appendLine("[server] restarting...");
     this.stop();
-    setTimeout(() => this.start(), 800);
+    if (this.restartTimer) clearTimeout(this.restartTimer);
+    this.restartTimer = setTimeout(() => this.start(), 800);
   }
 
   /** Poll the port file until the server is reachable. Returns when connected. */
@@ -128,7 +134,7 @@ export class ServerManager {
     this.output.appendLine(`[spawn] node ${this.serverScript}`);
     this.process = spawn("node", [this.serverScript], {
       stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env, MAIL_MCP_CLIENT_ID: CLIENT_ID },
+      env: { ...process.env, MAIL_MCP_CLIENT_ID: getClientId() },
     });
 
     this.process.stdout?.on("data", (d: Buffer) => {
@@ -166,6 +172,7 @@ export class ServerManager {
   }
 
   private dispose(): void {
+    if (this.restartTimer) clearTimeout(this.restartTimer);
     if (this.portDiscoveryInterval) clearInterval(this.portDiscoveryInterval);
     if (this.process && this.process.pid) {
       this.killProcessTree(this.process.pid);

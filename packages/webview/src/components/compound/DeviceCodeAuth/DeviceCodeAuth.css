@@ -9,13 +9,32 @@
   margin-right: auto;
 }
 
+.device-code-auth__link {
+  margin-top: 6px;
+  font-size: 0.8em;
+  color: var(--token-text-link);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.device-code-auth__link:hover {
+  text-decoration: underline;
+}
+
 .device-code-auth__status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+  width: 100%;
+  margin-top: 16px;
 }
 
 .device-code-auth__countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.device-code-auth__timer {
   font-variant-numeric: tabular-nums;
+  font-size: 0.85em;
 }

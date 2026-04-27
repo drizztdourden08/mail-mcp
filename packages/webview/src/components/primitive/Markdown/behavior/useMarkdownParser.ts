@@ -3,15 +3,7 @@ import { useMemo } from "react";
 /** Improved markdown → HTML converter with nested list and table support. */
 export function useMarkdownParser(source: string): string {
   return useMemo(() => {
-    const t0 = performance.now();
-    const result = parseMarkdown(source);
-    const elapsed = performance.now() - t0;
-    console.log(`[dbg] [${t0.toFixed(1)}ms] parseMarkdown: ${elapsed.toFixed(2)}ms, input=${source.length}chars, output=${result.length}chars`);
-    // Forward to extension for file logging
-    try {
-      (window as any).__vscodeApi?.postMessage({ type: "debug-log", args: [`parseMarkdown: ${elapsed.toFixed(2)}ms, input=${source.length}chars`] });
-    } catch {}
-    return result;
+    return parseMarkdown(source);
   }, [source]);
 }
 

@@ -7,22 +7,6 @@ import { stopMcpServer, startMcpServerManual, restartMcpServer, isServerRunning 
 
 const MCP_TOKEN_CACHE = path.join(os.homedir(), ".mail-mcp", "token_cache.json");
 
-// ── Debug file logger ────────────────────────────────────────
-const DEBUG_LOG_PATH = path.join(__dirname, "..", "..", "..", "debug.log");
-const DEBUG_ENABLED = true;
-let debugStream: fs.WriteStream | null = null;
-
-function dbg(tag: string, ...args: unknown[]) {
-  if (!DEBUG_ENABLED) return;
-  if (!debugStream) {
-    try { fs.writeFileSync(DEBUG_LOG_PATH, ""); } catch {}
-    debugStream = fs.createWriteStream(DEBUG_LOG_PATH, { flags: "a" });
-  }
-  const ts = new Date().toISOString().slice(11, 23); // HH:MM:SS.mmm
-  const line = `[${ts}] [${tag}] ${args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ")}\n`;
-  debugStream.write(line);
-}
-
 /** Fetch with a timeout to prevent hanging when the MCP server is unresponsive. */
 function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = 5000): Promise<Response> {
   return Promise.race([
@@ -46,7 +30,7 @@ function hasCachedMcpToken(): boolean {
 
 export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView;
-  private pendingChallenge: { code: string; uri: string; expiresIn?: number } | null = null;
+  private pendingChallenge: { code: string; uri: string; expiresIn?: number; source?: string } | null = null;
   private lastKnownLoggedIn: boolean | null = null;
   private ipcIsReady = false;
   private cachedProviders: unknown[] | null = null;
@@ -126,9 +110,17 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
 
   postToWebview(message: unknown) {
     const msg = message as { type: string; [k: string]: unknown };
-    dbg("ext→wv", msg.type, msg.type === "providers" ? `(${(msg.providers as unknown[])?.length ?? 0} providers)` : "");
     if (msg.type === "auth-challenge") {
-      this.pendingChallenge = { code: msg.code as string, uri: msg.uri as string, expiresIn: msg.expiresIn as number | undefined };
+      const sameCode = this.pendingChallenge?.code === (msg.code as string);
+      this.pendingChallenge = {
+        code: msg.code as string,
+        uri: msg.uri as string,
+        expiresIn: (msg.expiresIn as number | undefined) ?? (sameCode ? this.pendingChallenge?.expiresIn : undefined),
+        source: sameCode ? (this.pendingChallenge?.source ?? msg.source as string | undefined) : (msg.source as string | undefined),
+      };
+      // Ensure the forwarded message carries the preserved values
+      msg.source = this.pendingChallenge.source;
+      msg.expiresIn = this.pendingChallenge.expiresIn;
     } else if (msg.type === "auth-status") {
       this.lastKnownLoggedIn = msg.loggedIn as boolean;
       if (msg.loggedIn) this.pendingChallenge = null;
@@ -139,19 +131,12 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
   }
 
   private async handleMessage(msg: { type: string; [key: string]: unknown }) {
-    const _t0 = Date.now();
-    dbg("wv→ext", `handleMessage START: ${msg.type}`);
-    if (msg.type === "debug-log") {
-      dbg("webview", ...(msg.args as unknown[]));
-      return;
-    }
     switch (msg.type) {
       case "ready": {
-        dbg("ext", `ready: lastKnownLoggedIn=${this.lastKnownLoggedIn}, ipcReady=${this.ipcIsReady}, hasPending=${!!this.pendingChallenge}`);
         if (this.lastKnownLoggedIn !== null) {
           this.postToWebview({ type: "auth-status", loggedIn: this.lastKnownLoggedIn });
           if (this.pendingChallenge) {
-            this.postToWebview({ type: "auth-challenge", ...this.pendingChallenge, source: "mcp" });
+            this.postToWebview({ type: "auth-challenge", ...this.pendingChallenge });
           }
           if (this.ipcIsReady) {
             this.postToWebview({ type: "ipc-ready" });
@@ -177,7 +162,7 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
 
         this.postToWebview({ type: "auth-status", loggedIn });
         if (this.pendingChallenge) {
-          this.postToWebview({ type: "auth-challenge", ...this.pendingChallenge, source: "mcp" });
+          this.postToWebview({ type: "auth-challenge", ...this.pendingChallenge });
         }
         if (this.ipcIsReady) {
           this.postToWebview({ type: "ipc-ready" });
@@ -192,7 +177,7 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
 
       case "get-auth-challenge": {
         if (this.pendingChallenge) {
-          this.postToWebview({ type: "auth-challenge", ...this.pendingChallenge, source: "mcp" });
+          this.postToWebview({ type: "auth-challenge", ...this.pendingChallenge });
         }
         break;
       }
@@ -203,7 +188,6 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
       }
 
       case "get-providers": {
-        dbg("ext", `get-providers: cached=${!!this.cachedProviders}, count=${this.cachedProviders?.length ?? 0}`);
         // Return cached providers instantly; refresh cache in background
         if (this.cachedProviders) {
           this.postToWebview({ type: "providers", providers: this.cachedProviders });
@@ -308,9 +292,8 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
             if (data.loggedIn) {
               this.postToWebview({ type: "auth-status", loggedIn: true });
             } else if (data.pending) {
-              // AuthBridge will pick this up on next poll and auto-copy/open browser
               this.pendingChallenge = data.pending;
-              this.postToWebview({ type: "auth-challenge", ...data.pending, source: "mcp" });
+              this.postToWebview({ type: "auth-challenge", ...data.pending, source: "button" });
             } else {
               this.postToWebview({ type: "auth-error", error: data.error ?? "Sign in failed." });
             }
@@ -425,18 +408,15 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
 
       case "get-mcp-status": {
         const port = this.ipc.getPort();
-        dbg("ext", `get-mcp-status: port=${port}`);
         if (port) {
           try {
-            const _ft0 = Date.now();
             const res = await fetchWithTimeout(`http://127.0.0.1:${port}/mcp-status`, { method: "POST" });
-            dbg("ext", `get-mcp-status fetch took ${Date.now() - _ft0}ms, ok=${res.ok}`);
             if (res.ok) {
               const serverData = await res.json() as Record<string, unknown>;
               this.postToWebview({ type: "mcp-status", data: { ...serverData, lastMessage: null } });
               return;
             }
-          } catch (e) { dbg("ext", `get-mcp-status fetch error: ${e}`); }
+          } catch { /* server not responding */ }
         }
         this.postToWebview({
           type: "mcp-status",

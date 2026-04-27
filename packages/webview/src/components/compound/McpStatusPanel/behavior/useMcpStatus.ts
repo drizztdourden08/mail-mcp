@@ -17,8 +17,6 @@ export function useMcpStatus(postMessage: PostMessage, onMessage: OnMessage) {
   const [data, setData] = useState<McpStatusData>(DEFAULT_DATA);
 
   const poll = useCallback(() => {
-    console.log("[dbg] McpStatusPanel: polling get-mcp-status");
-    try { (window as any).__vscodeApi?.postMessage({ type: "debug-log", args: ["McpStatusPanel: polling get-mcp-status"] }); } catch {}
     postMessage({ type: "get-mcp-status" });
   }, [postMessage]);
 
@@ -31,8 +29,6 @@ export function useMcpStatus(postMessage: PostMessage, onMessage: OnMessage) {
   useEffect(() => {
     return onMessage((msg) => {
       if (msg.type === "mcp-status") {
-        console.log("[dbg] McpStatusPanel: received mcp-status", (msg.data as any)?.status);
-        try { (window as any).__vscodeApi?.postMessage({ type: "debug-log", args: ["McpStatusPanel: received mcp-status", (msg.data as any)?.status] }); } catch {}
         setData(msg.data as McpStatusData);
       }
     });
