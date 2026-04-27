@@ -1,7 +1,7 @@
 {
   "name": "mail-mcp",
   "description": "MCP server and VS Code extension for AI-powered email management with human-in-the-loop approval.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Drizztdourden_",
     "url": "https://github.com/drizztdourden08"

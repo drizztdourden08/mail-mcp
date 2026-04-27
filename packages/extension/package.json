@@ -2,7 +2,7 @@
   "name": "mail-mcp-extension",
   "displayName": "Mail MCP",
   "description": "Give AI assistants secure, human-in-the-loop access to your email. Search, review, delete, move, and unsubscribe — all through an MCP server with a built-in approval UI.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "Drizztdourden",
   "author": {
     "name": "Drizztdourden_",
@@ -75,7 +75,6 @@
         "command": "mail-mcp.openPanel",
         "title": "Mail MCP: Open Panel"
       },
-
       {
         "command": "mail-mcp.startServer",
         "title": "Mail MCP: Start Server"
@@ -123,12 +122,13 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
+    "clean": "node -e \"fs=require('fs');p=require('path');d='out';fs.readdirSync(d).filter(f=>f!=='extension.js').forEach(f=>fs.unlinkSync(p.join(d,f)))\"",
     "compile": "npm run check-types && node esbuild.js",
     "check-types": "tsc --noEmit",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --preserveWatchOutput",
-    "package": "npm run check-types && node esbuild.js --production"
+    "package": "npm run check-types && node esbuild.js --production && npm run clean"
   },
   "dependencies": {
     "@azure/msal-node": "^5.1.4",
