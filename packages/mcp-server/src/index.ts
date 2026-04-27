@@ -15,13 +15,11 @@ import { MCP_INSTRUCTIONS } from "./instructions.js";
 import type { AuthToolState, ToolContext } from "./types/tool.js";
 
 const CONFIG_DIR = join(homedir(), ".mail-mcp");
-const PORT_FILE = join(CONFIG_DIR, "ipc-port");
+const PORT_FILE = process.env.MAIL_MCP_PORT_FILE || join(CONFIG_DIR, "ipc-port");
 const CACHE_FILE = join(CONFIG_DIR, "token_cache.json");
 
 function getClientId(): string {
-  const id = process.env.MAIL_MCP_CLIENT_ID;
-  if (!id) throw new Error("MAIL_MCP_CLIENT_ID environment variable is required");
-  return id;
+  return process.env.MAIL_MCP_CLIENT_ID ?? "";
 }
 
 async function main() {

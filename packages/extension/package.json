@@ -2,7 +2,7 @@
   "name": "mail-mcp-extension",
   "displayName": "Mail MCP",
   "description": "Give AI assistants secure, human-in-the-loop access to your email. Search, review, delete, move, and unsubscribe — all through an MCP server with a built-in approval UI.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "Drizztdourden",
   "author": {
     "name": "Drizztdourden_",
@@ -91,10 +91,13 @@
     "configuration": {
       "title": "Mail MCP",
       "properties": {
-        "mail-mcp.clientId": {
-          "type": "string",
-          "default": "",
-          "description": "The Application (client) ID from your Azure AD app registration. If not set, falls back to the MAIL_MCP_CLIENT_ID environment variable."
+        "mail-mcp.providerConfig": {
+          "type": "object",
+          "default": {},
+          "description": "Per-provider configuration values. Keys are \"providerId.fieldKey\" (e.g. \"exchange.clientId\").",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "mail-mcp.autoCopyCode": {
           "type": "boolean",

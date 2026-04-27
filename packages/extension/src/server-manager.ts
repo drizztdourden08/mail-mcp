@@ -6,14 +6,42 @@ import { spawn, execSync, type ChildProcess } from "child_process";
 import type { IpcClient } from "./ipc-client";
 import * as dotenv from "dotenv";
 
-const IPC_PORT_FILE = path.join(os.homedir(), ".mail-mcp", "ipc-port");
+const CONFIG_DIR = path.join(os.homedir(), ".mail-mcp");
 
-// Load .env from workspace root (three levels up from out/)
-dotenv.config({ path: path.join(__dirname, "..", "..", "..", ".env") });
+// Try loading .env from each open workspace folder
+for (const folder of vscode.workspace.workspaceFolders ?? []) {
+  dotenv.config({ path: path.join(folder.uri.fsPath, ".env") });
+}
 
-function getClientId(): string {
+/**
+ * Known provider env-var mappings.
+ * Each entry maps a providerConfig key ("providerId.fieldKey") to its env var.
+ */
+const PROVIDER_ENV_MAP: Record<string, string> = {
+  "exchange.clientId": "MAIL_MCP_CLIENT_ID",
+};
+
+/**
+ * Resolve a provider config value.
+ * Priority: VS Code setting → .env / process.env → empty string.
+ */
+function resolveProviderConfigValue(configKey: string, envVar: string): string {
   const cfg = vscode.workspace.getConfiguration("mail-mcp");
-  return cfg.get<string>("clientId", "") || process.env.MAIL_MCP_CLIENT_ID || "";
+  const providerConfig = cfg.get<Record<string, string>>("providerConfig", {});
+  return providerConfig[configKey] || process.env[envVar] || "";
+}
+
+/**
+ * Build the set of environment variables that all registered providers need,
+ * resolved through VS Code settings → .env → process.env.
+ */
+function buildProviderEnv(): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const [configKey, envVar] of Object.entries(PROVIDER_ENV_MAP)) {
+    const value = resolveProviderConfigValue(configKey, envVar);
+    if (value) env[envVar] = value;
+  }
+  return env;
 }
 
 export class ServerManager {
@@ -23,6 +51,8 @@ export class ServerManager {
   private portDiscoveryInterval?: ReturnType<typeof setInterval>;
   private restartTimer?: ReturnType<typeof setTimeout>;
 
+  private readonly portFile: string;
+
   constructor(
     private readonly context: vscode.ExtensionContext,
     private readonly ipcClient: IpcClient,
@@ -30,6 +60,11 @@ export class ServerManager {
   ) {
     this.output = output;
     this.serverScript = path.join(context.extensionPath, "dist", "mcp-server", "index.js");
+    // Instance-specific port file based on VS Code storage URI (unique per window)
+    const instanceId = Buffer.from(context.storageUri?.toString() ?? Date.now().toString())
+      .toString("base64url").slice(0, 12);
+    this.portFile = path.join(CONFIG_DIR, `ipc-port-${instanceId}`);
+    this.output.appendLine(`[server] port file: ${this.portFile}`);
     context.subscriptions.push({ dispose: () => this.dispose() });
   }
 
@@ -45,8 +80,9 @@ export class ServerManager {
       return;
     }
 
+    // Check if THIS instance's server is still alive
     try {
-      const portStr = fs.readFileSync(IPC_PORT_FILE, "utf-8").trim();
+      const portStr = fs.readFileSync(this.portFile, "utf-8").trim();
       const port = parseInt(portStr, 10);
       if (port > 0) {
         this.output.appendLine(`[server] port file found: ${port} — pinging...`);
@@ -106,7 +142,7 @@ export class ServerManager {
   ): void {
     const tryRead = async (): Promise<boolean> => {
       try {
-        const portStr = fs.readFileSync(IPC_PORT_FILE, "utf-8").trim();
+        const portStr = fs.readFileSync(this.portFile, "utf-8").trim();
         const port = parseInt(portStr, 10);
         if (!port) return false;
         const res = await fetch(`http://127.0.0.1:${port}/status`);
@@ -134,7 +170,12 @@ export class ServerManager {
     this.output.appendLine(`[spawn] node ${this.serverScript}`);
     this.process = spawn("node", [this.serverScript], {
       stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env, MAIL_MCP_CLIENT_ID: getClientId() },
+      env: {
+        ...process.env,
+        ...buildProviderEnv(),
+        MAIL_MCP_PORT_FILE: this.portFile,
+        MAIL_MCP_PORT: "0",
+      },
     });
 
     this.process.stdout?.on("data", (d: Buffer) => {
@@ -154,7 +195,8 @@ export class ServerManager {
   }
 
   private killOnPort(): boolean {
-    const port = this.ipcClient.getPort() || 3101;
+    const port = this.ipcClient.getPort();
+    if (!port) return false;
     try {
       const out = execSync(`netstat -ano | findstr "LISTENING" | findstr ":${port} "`, { encoding: "utf-8", timeout: 3000 });
       const match = out.match(/LISTENING\s+(\d+)/);
@@ -168,7 +210,7 @@ export class ServerManager {
   }
 
   private cleanPortFile(): void {
-    try { fs.unlinkSync(IPC_PORT_FILE); } catch { /* ignore */ }
+    try { fs.unlinkSync(this.portFile); } catch { /* ignore */ }
   }
 
   private dispose(): void {

@@ -2,10 +2,12 @@ import { useState, useCallback } from "react";
 import Title from "../../components/primitive/Title/Title";
 import Text from "../../components/primitive/Text/Text";
 import Button from "../../components/primitive/Button/Button";
+import TextInput from "../../components/primitive/TextInput/TextInput";
 import Markdown from "../../components/primitive/Markdown/Markdown";
 import SettingToggle from "../../components/composite/SettingToggle/SettingToggle";
 import { useSettings } from "./behavior/useSettings";
 import { useCustomInstructions } from "./behavior/useCustomInstructions";
+import { useProviderConfig } from "./behavior/useProviderConfig";
 import type { PostMessage, OnMessage } from "../../types";
 import "./SettingsView.css";
 
@@ -14,11 +16,12 @@ interface Props {
   onMessage: OnMessage;
 }
 
-type SettingsTab = "general" | "mcp-config" | "instructions" | "custom-instructions";
+type SettingsTab = "general" | "providers" | "mcp-config" | "instructions" | "custom-instructions";
 
 export default function SettingsView({ postMessage, onMessage }: Props) {
   const { settings, update } = useSettings(postMessage, onMessage);
   const { defaultInstructions, customInstructions, onChange: onCustomChange, savedMsg } = useCustomInstructions(postMessage, onMessage);
+  const { providers, config, updateField } = useProviderConfig(postMessage, onMessage);
   const [tab, setTab] = useState<SettingsTab>("general");
 
   const addMcpConfig = useCallback((client: string) => {
@@ -27,6 +30,7 @@ export default function SettingsView({ postMessage, onMessage }: Props) {
 
   const tabs: { id: SettingsTab; label: string }[] = [
     { id: "general", label: "General" },
+    { id: "providers", label: "Providers" },
     { id: "mcp-config", label: "MCP Config" },
     { id: "instructions", label: "Instructions" },
     { id: "custom-instructions", label: "Custom" },
@@ -72,6 +76,54 @@ export default function SettingsView({ postMessage, onMessage }: Props) {
             label="Focus panel on new review"
             description="Automatically focus the Mail MCP panel when the AI creates a new review."
           />
+        </div>
+      )}
+
+      {tab === "providers" && (
+        <div className="settings-view__section">
+          <Text variant="description">
+            Values set here are stored in VS Code settings. You can also set them via environment variables or a <code>.env</code> file in your workspace root.
+          </Text>
+          {providers.length === 0 ? (
+            <Text variant="description">No providers registered.</Text>
+          ) : (
+            providers.map((provider) => (
+              <div key={provider.id} className="settings-view__provider">
+                <div className="settings-view__provider-header">
+                  <span
+                    className="settings-view__provider-icon"
+                    dangerouslySetInnerHTML={{ __html: provider.svgLogo }}
+                  />
+                  <Title level={3}>{provider.name}</Title>
+                </div>
+                {provider.configFields.length === 0 ? (
+                  <Text variant="description">This provider has no configuration fields.</Text>
+                ) : (
+                  provider.configFields.map((field) => {
+                    const configKey = `${provider.id}.${field.key}`;
+                    return (
+                      <div key={field.key} className="settings-view__provider-field">
+                        <label className="settings-view__field-label">
+                          {field.label}
+                          {field.required && <span className="settings-view__field-required">*</span>}
+                        </label>
+                        <Text variant="description">{field.description}</Text>
+                        <div className="settings-view__field-row">
+                          <TextInput
+                            fullWidth
+                            type={field.secret ? "password" : "text"}
+                            value={config[configKey] ?? ""}
+                            onChange={(e) => updateField(provider.id, field.key, e.target.value)}
+                            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            ))
+          )}
         </div>
       )}
 

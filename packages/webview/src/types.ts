@@ -6,6 +6,15 @@ export type View = "home" | "settings" | "docs";
 // Provider registry
 export type AuthStrategy = "device-code" | "oauth-redirect" | "api-key";
 
+export interface ProviderConfigField {
+  key: string;
+  label: string;
+  description: string;
+  envVar: string;
+  required: boolean;
+  secret?: boolean;
+}
+
 export interface ProviderInfo {
   id: string;
   name: string;
@@ -13,6 +22,7 @@ export interface ProviderInfo {
   authStrategy: AuthStrategy;
   isConfigured: boolean;
   setupMarkdown: string;
+  configFields: ProviderConfigField[];
 }
 
 // Auth

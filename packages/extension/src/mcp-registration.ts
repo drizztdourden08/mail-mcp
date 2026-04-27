@@ -1,21 +1,27 @@
 import * as vscode from "vscode";
 
-const MCP_PORT = 3101;
-
 export class McpRegistration {
   private readonly onChanged = new vscode.EventEmitter<void>();
   private enabled = true;
+  private port = 0;
+
+  setPort(port: number): void {
+    if (port !== this.port) {
+      this.port = port;
+      this.onChanged.fire();
+    }
+  }
 
   register(context: vscode.ExtensionContext): void {
     const self = this;
     const provider: vscode.McpServerDefinitionProvider<vscode.McpHttpServerDefinition> = {
       onDidChangeMcpServerDefinitions: this.onChanged.event,
       provideMcpServerDefinitions() {
-        if (!self.enabled) return [];
+        if (!self.enabled || !self.port) return [];
         return [
           new vscode.McpHttpServerDefinition(
             "Mail",
-            vscode.Uri.parse(`http://127.0.0.1:${MCP_PORT}/mcp`),
+            vscode.Uri.parse(`http://127.0.0.1:${self.port}/mcp`),
           ),
         ];
       },

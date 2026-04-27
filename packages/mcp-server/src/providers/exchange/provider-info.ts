@@ -10,7 +10,10 @@ function loadSetupMarkdown(): string {
   // Try source path first (src/providers/exchange/setup.md)
   const srcPath = join(__dirname, "..", "..", "providers", "exchange", "setup.md");
   try { return readFileSync(srcPath, "utf-8"); } catch { /* not found */ }
-  // Try relative to compiled file (dist/providers/exchange/setup.md)
+  // Try relative to bundle root (dist/mcp-server/providers/exchange/setup.md)
+  const bundlePath = join(__dirname, "providers", "exchange", "setup.md");
+  try { return readFileSync(bundlePath, "utf-8"); } catch { /* not found */ }
+  // Try adjacent to compiled file (dist/providers/exchange/setup.md)
   const distPath = join(__dirname, "setup.md");
   try { return readFileSync(distPath, "utf-8"); } catch { /* not found */ }
   return "# Setup\n\nSetup documentation not found.";
@@ -26,6 +29,15 @@ export const EXCHANGE_PROVIDER_INFO: ProviderInfo = {
   authStrategy: "device-code",
   isConfigured: false,
   setupMarkdown: EXCHANGE_SETUP_MD,
+  configFields: [
+    {
+      key: "clientId",
+      label: "Application (Client) ID",
+      description: "The client ID from your Azure AD app registration.",
+      envVar: "MAIL_MCP_CLIENT_ID",
+      required: true,
+    },
+  ],
 };
 
 export function isExchangeConfigured(): boolean {

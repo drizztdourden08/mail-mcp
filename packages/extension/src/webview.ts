@@ -38,6 +38,7 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
   constructor(
     private readonly extensionUri: vscode.Uri,
     private readonly ipc: IpcClient,
+    private readonly outputChannel?: vscode.OutputChannel,
   ) {}
 
   /** Pre-fetch providers when IPC becomes available so Setup opens instantly. */
@@ -105,6 +106,11 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
     this.postToWebview({
       type: "custom-instructions",
       content: cfg.get<string>("customInstructions", ""),
+    });
+    // Push provider config
+    this.postToWebview({
+      type: "provider-config",
+      config: cfg.get<Record<string, string>>("providerConfig", {}),
     });
   }
 
@@ -175,6 +181,13 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
         break;
       }
 
+      case "open-logs": {
+        if (this.outputChannel) {
+          this.outputChannel.show(true);
+        }
+        break;
+      }
+
       case "get-auth-challenge": {
         if (this.pendingChallenge) {
           this.postToWebview({ type: "auth-challenge", ...this.pendingChallenge });
@@ -230,7 +243,18 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
         break;
       }
 
+      case "set-provider-config": {
+        const cfg = vscode.workspace.getConfiguration("mail-mcp");
+        const current = cfg.get<Record<string, string>>("providerConfig", {});
+        const key = msg.key as string;
+        const value = msg.value as string;
+        const updated = { ...current, [key]: value };
+        await cfg.update("providerConfig", updated, vscode.ConfigurationTarget.Global);
+        break;
+      }
+
       case "get-instructions": {
+        let sent = false;
         const port = this.ipc.getPort();
         if (port) {
           try {
@@ -238,8 +262,23 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
             if (res.ok) {
               const data = await res.json() as { content: string };
               this.postToWebview({ type: "instructions", content: data.content });
+              sent = true;
             }
           } catch {}
+        }
+        if (!sent) {
+          // Fallback: read the pre-extracted instructions.txt bundled alongside the server
+          try {
+            const instrPath = path.join(this.extensionUri.fsPath, "dist", "mcp-server", "instructions.txt");
+            const content = fs.readFileSync(instrPath, "utf-8");
+            if (content) {
+              this.postToWebview({ type: "instructions", content });
+              sent = true;
+            }
+          } catch {}
+        }
+        if (!sent) {
+          this.postToWebview({ type: "instructions", content: "_MCP server is not running. Start the server to view instructions._" });
         }
         break;
       }

@@ -1,5 +1,6 @@
 import CollapsiblePanel from "../../composite/CollapsiblePanel/CollapsiblePanel";
 import DataRow from "../../composite/DataRow/DataRow";
+import Button from "../../primitive/Button/Button";
 import McpControls from "./sub/McpControls";
 import { useMcpStatus, formatUptime } from "./behavior/useMcpStatus";
 import { MCP_STATUS_LABELS } from "./types";
@@ -54,6 +55,13 @@ export default function McpStatusPanel({ postMessage, onMessage }: Props) {
           <DataRow label="Last" value={<span className="mcp-status-panel__last-msg">{data.lastMessage}</span>} />
         )}
       </div>
+
+      <Button
+        className="mcp-status-panel__logs-btn"
+        onClick={() => postMessage({ type: "open-logs" })}
+      >
+        Open Logs
+      </Button>
     </CollapsiblePanel>
   );
 }

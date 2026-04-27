@@ -23,3 +23,10 @@
   color: var(--vscode-descriptionForeground);
   font-style: italic;
 }
+
+.mcp-status-panel__logs-btn {
+  margin-top: 8px;
+  width: 100%;
+  background: var(--vscode-button-background) !important;
+  color: var(--vscode-button-foreground) !important;
+}

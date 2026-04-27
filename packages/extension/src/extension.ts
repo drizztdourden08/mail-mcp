@@ -19,6 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
   const webviewProvider = new OutlookWebviewProvider(
     context.extensionUri,
     ipcClient,
+    outputChannel,
   );
 
   // Webview
@@ -53,6 +54,21 @@ export function activate(context: vscode.ExtensionContext) {
   );
   authBridge.startPolling(context);
 
+  // Auto-restart server when provider config changes
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration("mail-mcp.providerConfig") && serverManager.isRunning()) {
+        outputChannel.appendLine("[config] providerConfig changed — restarting server");
+        serverManager.restart();
+        serverManager.discoverPort(async (port) => {
+          webviewProvider.postToWebview({ type: "ipc-ready" });
+          webviewProvider.refreshProviderCache();
+          mcpRegistration.setPort(port);
+        });
+      }
+    }),
+  );
+
   // Server lifecycle
   serverManager.autoStart();
   serverManager.discoverPort(async (port) => {
@@ -66,7 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
     webviewProvider.postToWebview({ type: "ipc-ready" });
     webviewProvider.refreshProviderCache();
     webviewProvider.syncCustomInstructionsToServer(port);
-    mcpRegistration.notifyChanged();
+    mcpRegistration.setPort(port);
   });
 
   // MCP provider

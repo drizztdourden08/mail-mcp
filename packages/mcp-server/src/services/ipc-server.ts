@@ -11,7 +11,7 @@ export class IpcServer {
   private server?: http.Server;
   private port?: number;
 
-  constructor(private portFilePath: string, private defaultPort = 3101) {}
+  constructor(private portFilePath: string, private defaultPort = 0) {}
 
   registerHandler(route: string, handler: IpcHandler): void {
     this.handlers.set(route, handler);

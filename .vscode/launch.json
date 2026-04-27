@@ -12,7 +12,7 @@
       "outFiles": [
         "${workspaceFolder}/packages/extension/out/**/*.js"
       ],
-      "preLaunchTask": "compile-extension"
+      "preLaunchTask": "build-all"
     }
   ]
 }

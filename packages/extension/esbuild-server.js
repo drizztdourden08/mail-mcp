@@ -31,6 +31,29 @@ async function main() {
   const distProviders = path.join(__dirname, "dist", "mcp-server", "providers");
   copyMdFiles(srcProviders, distProviders);
 
+  // Extract MCP_INSTRUCTIONS to a text file so the extension can serve them
+  // without needing the server to be running
+  const instrSrc = fs.readFileSync(
+    path.join(__dirname, "..", "mcp-server", "src", "instructions.ts"),
+    "utf-8"
+  );
+  const lines = [];
+  const lineRegex = /^\s*"(.*)"(?:,?\s*)$/;
+  for (const raw of instrSrc.split(/\r?\n/)) {
+    const m = raw.match(lineRegex);
+    if (m) lines.push(m[1].replace(/\\"/g, '"'));
+  }
+  const distDir = path.join(__dirname, "dist", "mcp-server");
+  fs.mkdirSync(distDir, { recursive: true });
+  fs.writeFileSync(path.join(distDir, "instructions.txt"), lines.join("\n"), "utf-8");
+
+  // Emit a package.json so Node recognises the bundle as ESM without warnings
+  fs.writeFileSync(
+    path.join(distDir, "package.json"),
+    JSON.stringify({ type: "module" }, null, 2) + "\n",
+    "utf-8",
+  );
+
   console.log("[esbuild] mcp-server bundle complete");
 }
 
