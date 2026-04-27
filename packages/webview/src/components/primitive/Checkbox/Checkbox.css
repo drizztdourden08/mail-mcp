@@ -1,0 +1,17 @@
+.checkbox {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.checkbox input[type="checkbox"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--token-checkbox-active);
+}
+
+.checkbox__label {
+  flex: 1;
+  min-width: 0;
+}

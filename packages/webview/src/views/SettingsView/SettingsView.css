@@ -1,0 +1,82 @@
+.settings-view {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.settings-view__tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--token-border-default);
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.settings-view__tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 12px;
+  color: var(--token-text-secondary);
+  cursor: pointer;
+  font-size: 0.85em;
+  opacity: 0.7;
+  transition: opacity 0.12s;
+}
+.settings-view__tab:hover { opacity: 1; }
+.settings-view__tab--active {
+  border-bottom-color: var(--vscode-focusBorder);
+  color: var(--token-text-primary);
+  opacity: 1;
+}
+
+.settings-view__section {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.settings-view__config-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+  max-width: 280px;
+}
+
+.settings-view__instructions-box {
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--token-surface-code);
+  border: 1px solid var(--token-border-code);
+  border-radius: 4px;
+  overflow-y: auto;
+  max-height: 400px;
+  font-size: 0.85em;
+}
+
+.settings-view__textarea {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border, var(--token-border-default));
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.9em;
+  resize: vertical;
+  min-height: 120px;
+}
+.settings-view__textarea:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder);
+}
+
+.settings-view__save-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}

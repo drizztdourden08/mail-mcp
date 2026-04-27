@@ -1,8 +1,26 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 out/
+
+# VS Code extension packaging
 *.vsix
+
+# Environment / secrets
 .env
 .env.local
-*.js.map
-*.d.ts.map
+
+# Logs
+debug.log
+*.log
+
+# Test artifacts
+.test-storage/
+test/screenshots/
+test-auth.*
+
+# Temp scripts
+_apply*.js
+_edit.js

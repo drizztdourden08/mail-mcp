@@ -1,0 +1,11 @@
+.provider-status-panel__empty {
+  font-size: 0.85em;
+  color: var(--vscode-descriptionForeground);
+  font-style: italic;
+}
+
+.provider-status-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}

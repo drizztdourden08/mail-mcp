@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../packages/webview/dist/index.css">
+  <title>Mail MCP — Test Harness</title>
+  <style>
+    /* VS Code dark theme variables */
+    :root {
+      --vscode-font-family: "Segoe UI", system-ui, sans-serif;
+      --vscode-font-size: 13px;
+      --vscode-foreground: #cccccc;
+      --vscode-sideBar-background: #1e1e1e;
+      --vscode-editor-background: #1e1e1e;
+      --vscode-textLink-foreground: #3794ff;
+      --vscode-textLink-activeForeground: #3794ff;
+      --vscode-panel-border: rgba(255,255,255,0.08);
+      --vscode-button-background: #0e639c;
+      --vscode-button-foreground: #ffffff;
+      --vscode-button-hoverBackground: #1177bb;
+      --vscode-button-secondaryBackground: #3a3d41;
+      --vscode-button-secondaryForeground: #cccccc;
+      --vscode-button-secondaryHoverBackground: #45494e;
+      --vscode-input-background: #3c3c3c;
+      --vscode-input-foreground: #cccccc;
+      --vscode-input-border: #3c3c3c;
+      --vscode-input-placeholderForeground: #a0a0a0;
+      --vscode-focusBorder: #007fd4;
+      --vscode-badge-background: #4d4d4d;
+      --vscode-badge-foreground: #ffffff;
+      --vscode-descriptionForeground: #9e9e9e;
+      --vscode-errorForeground: #f48771;
+      --vscode-checkbox-background: #3c3c3c;
+      --vscode-checkbox-border: #6b6b6b;
+      --vscode-checkbox-foreground: #cccccc;
+    }
+  </style>
+  <script>
+    // ── Mock VS Code API ──────────────────────────────────────
+    // Messages from webview → extension go to window.__outgoing
+    // Messages from extension → webview are dispatched as MessageEvents
+    window.__outgoing = [];
+    window.__timings = {};
+
+    function postToWebview(data) {
+      window.postMessage(data, '*');
+    }
+
+    function acquireVsCodeApi() {
+      return {
+        postMessage(msg) {
+          const ts = performance.now();
+          window.__outgoing.push({ ts, msg });
+          console.log('[webview→ext]', msg.type, msg);
+          // Simulate extension responses
+          handleMockMessage(msg);
+        },
+        getState() { return {}; },
+        setState(s) { return s; },
+      };
+    }
+
+    // ── Mock extension message handler ────────────────────────
+    // Simulates REAL extension behavior: async handleMessage with serial awaits,
+    // auth-bridge polling, and slow IPC responses.
+    const MOCK_PROVIDERS = [{
+      id: "exchange",
+      name: "Microsoft Exchange",
+      svgLogo: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M13.5 2L3 5.5v13L13.5 22l7.5-3V5L13.5 2z" fill="#0078D4"/><text x="12" y="15" text-anchor="middle" fill="white" font-size="8" font-weight="bold" font-family="sans-serif">Ex</text></svg>',
+      authStrategy: "device-code",
+      isConfigured: true,
+      setupMarkdown: "# Microsoft Exchange Setup\n\nConnect Mail MCP to your Microsoft Exchange or Outlook mailbox.\n\n## Prerequisites\n\n- A Microsoft account (personal `@outlook.com` / `@hotmail.com`) **or** a Microsoft 365 work/school account\n- An Azure AD App Registration with the correct permissions\n\n## 1 — Create an Azure App Registration\n\n1. Go to the [Azure Portal](https://portal.azure.com)\n2. Navigate to **Azure Active Directory** → **App registrations** → **New registration**\n3. Fill in:\n   - **Name**: `Mail MCP` (or any name you prefer)\n   - **Supported account types**: select the type matching your account\n   - **Redirect URI**: leave blank (not needed for device code flow)\n4. Click **Register**\n\n## 2 — Configure API Permissions\n\n1. In your new app registration, go to **API permissions** → **Add a permission**\n2. Select **Microsoft Graph** → **Delegated permissions**\n3. Add these permissions:\n   - `User.Read`\n   - `Mail.Read`\n   - `Mail.ReadWrite`\n   - `Mail.Send`\n4. Click **Add permissions**\n\n## Troubleshooting\n\n| Problem | Solution |\n|---|---|\n| **AADSTS50059** error | Your tenant doesn't allow personal accounts. |\n| **Insufficient privileges** | Admin consent hasn't been granted. |\n| **Token cache issues** | Delete `~/.mail-mcp/token_cache.json` and sign in again. |"
+    }];
+
+    const MOCK_MCP_STATUS = {
+      status: "running",
+      port: 3101,
+      address: "http://127.0.0.1:3101/mcp",
+      tools: 23,
+      sessions: 1,
+      uptime: 120,
+      version: "0.1.0",
+    };
+
+    // Simulate realistic slow extension behavior  
+    // The REAL extension does:  handleMessage is async, each case awaits IPC.
+    // If IPC is slow (or server hasn't started), messages queue behind each other.
+    const messageQueue = [];
+    let processing = false;
+
+    // Configurable: simulate slow IPC (set via window.__slowMode)
+    window.__slowMode = false;
+    window.__ipcDelay = 50;  // ms per IPC call
+
+    async function processQueue() {
+      if (processing) return;
+      processing = true;
+      while (messageQueue.length > 0) {
+        const msg = messageQueue.shift();
+        await handleMockMessageAsync(msg);
+      }
+      processing = false;
+    }
+
+    function handleMockMessage(msg) {
+      if (window.__serialMode) {
+        // Simulate the REAL bug: serial async processing
+        messageQueue.push(msg);
+        processQueue();
+      } else {
+        // Fixed: fire-and-forget (each message handled independently)
+        handleMockMessageAsync(msg);
+      }
+    }
+
+    function ipcDelay() {
+      const ms = window.__slowMode ? 2000 : window.__ipcDelay;
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    async function handleMockMessageAsync(msg) {
+      switch (msg.type) {
+        case "ready":
+          await ipcDelay(); // simulates fetchWithTimeout to /auth/status
+          postToWebview({ type: "auth-status", loggedIn: false });
+          postToWebview({ type: "ipc-ready" });
+          break;
+
+        case "get-providers":
+          window.__timings.getProvidersStart = performance.now();
+          if (window.__realisticStartup && !providersPushed) {
+            // No port yet — return empty immediately (like real extension)
+            postToWebview({ type: "providers", providers: [] });
+          } else {
+            await ipcDelay();
+            postToWebview({ type: "providers", providers: MOCK_PROVIDERS });
+          }
+          window.__timings.getProvidersEnd = performance.now();
+          break;
+
+        case "get-settings":
+          postToWebview({ type: "settings", autoCopyCode: true, autoOpenBrowser: true });
+          break;
+
+        case "get-mcp-status":
+          await ipcDelay(); // simulates fetchWithTimeout to /mcp-status
+          postToWebview({ type: "mcp-status", data: MOCK_MCP_STATUS });
+          break;
+
+        case "get-reviews":
+          await ipcDelay();
+          postToWebview({ type: "reviews", reviews: [] });
+          break;
+
+        case "login":
+          await ipcDelay();
+          postToWebview({ type: "auth-challenge", code: "MOCK1234", uri: "https://microsoft.com/devicelogin", source: "mcp" });
+          break;
+
+        default:
+          console.log('[mock] unhandled:', msg.type);
+      }
+    }
+
+    // Simulate auth-bridge polling (sends auth-status every 2s)
+    window.__authPolling = false;
+    function startAuthPolling() {
+      window.__authPolling = true;
+      setInterval(() => {
+        if (window.__authPolling) {
+          postToWebview({ type: "auth-status", loggedIn: false });
+        }
+      }, 2000);
+    }
+
+    // Simulate realistic extension startup:
+    // 1. On mount, webview sends get-providers + ready
+    // 2. Extension has no port yet → returns empty immediately
+    // 3. 2s later, server starts → refreshProviderCache → pushes providers
+    window.__realisticStartup = window.__realisticStartup ?? false;
+    let providersPushed = false;
+    function simulateServerStart() {
+      setTimeout(() => {
+        console.log('[mock] Server started! Pushing providers...');
+        postToWebview({ type: "providers", providers: MOCK_PROVIDERS });
+        postToWebview({ type: "mcp-status", data: MOCK_MCP_STATUS });
+        providersPushed = true;
+      }, 2000);
+    }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="../packages/webview/dist/index.js"></script>
+</body>
+</html>

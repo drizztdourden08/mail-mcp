@@ -1,0 +1,25 @@
+.mcp-status-panel {
+  margin-top: auto;
+}
+
+.mcp-status-panel__header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.mcp-controls {
+  display: flex;
+  gap: 2px;
+}
+
+.mcp-status-panel__details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mcp-status-panel__last-msg {
+  color: var(--vscode-descriptionForeground);
+  font-style: italic;
+}

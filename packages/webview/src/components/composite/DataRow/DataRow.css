@@ -1,0 +1,24 @@
+.data-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8em;
+}
+
+.data-row__label {
+  color: var(--vscode-descriptionForeground);
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.data-row__value {
+  color: var(--vscode-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-row__value--mono {
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 0.95em;
+}

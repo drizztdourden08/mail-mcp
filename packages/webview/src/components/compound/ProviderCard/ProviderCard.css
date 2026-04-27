@@ -1,0 +1,30 @@
+.provider-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--vscode-panel-border, var(--vscode-editorGroup-border));
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.provider-card__logo {
+  flex-shrink: 0;
+}
+
+.provider-card__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.provider-card__name {
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.provider-card__strategy {
+  margin-bottom: 0;
+}

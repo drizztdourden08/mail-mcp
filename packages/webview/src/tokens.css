@@ -1,0 +1,43 @@
+/* ── Design Tokens ─────────────────────────────────────────────
+ * Single source of truth for all non-vscode colors.
+ * Components should reference these via var(--token-*).
+ * VS Code theme vars are used directly where available.
+ * ────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Surfaces ─────────────────────────────────── */
+  --token-surface-hover: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.04));
+  --token-surface-subtle: rgba(255, 255, 255, 0.02);
+  --token-surface-raised: rgba(255, 255, 255, 0.03);
+  --token-surface-overlay: rgba(255, 255, 255, 0.06);
+  --token-surface-code: var(--vscode-textCodeBlock-background, rgba(0, 0, 0, 0.25));
+
+  /* ── Borders ──────────────────────────────────── */
+  --token-border-default: var(--vscode-panel-border, rgba(255, 255, 255, 0.1));
+  --token-border-subtle: rgba(255, 255, 255, 0.06);
+  --token-border-code: rgba(255, 255, 255, 0.08);
+
+  /* ── Text ─────────────────────────────────────── */
+  --token-text-primary: var(--vscode-foreground);
+  --token-text-secondary: var(--vscode-descriptionForeground, rgba(255, 255, 255, 0.6));
+  --token-text-muted: rgba(255, 255, 255, 0.35);
+  --token-text-code: var(--vscode-textPreformat-foreground, #d7ba7d);
+  --token-text-on-primary: var(--vscode-button-foreground, #ffffff);
+  --token-text-link: var(--vscode-textLink-foreground);
+
+  /* ── Semantic ─────────────────────────────────── */
+  --token-success: var(--vscode-charts-green, #4caf50);
+  --token-danger: var(--vscode-errorForeground, #d32f2f);
+  --token-info: var(--vscode-focusBorder, #007fd4);
+  --token-info-bg: rgba(0, 120, 212, 0.1);
+
+  /* ── Spinner ──────────────────────────────────── */
+  --token-spinner-track: var(--vscode-descriptionForeground, #888888);
+  --token-spinner-fill: var(--vscode-focusBorder, #007fd4);
+
+  /* ── Checkbox ─────────────────────────────────── */
+  --token-checkbox-bg: var(--vscode-checkbox-background, #3c3c3c);
+  --token-checkbox-border: var(--vscode-checkbox-border, #6b6b6b);
+  --token-checkbox-fg: var(--vscode-checkbox-foreground, #cccccc);
+  --token-checkbox-active: var(--vscode-focusBorder, #007fd4);
+}

@@ -1,0 +1,17 @@
+.login-view {
+  text-align: center;
+  padding: 24px 12px;
+}
+
+.login-view__providers {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.login-view__error {
+  margin-top: 12px;
+}
+
+.login-view__error .btn {
+  margin-top: 8px;
+}

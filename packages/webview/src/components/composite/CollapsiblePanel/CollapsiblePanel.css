@@ -1,0 +1,45 @@
+.collapsible {
+  border-top: 1px solid var(--vscode-panel-border, var(--vscode-editorGroup-border));
+  flex-shrink: 0;
+}
+
+.collapsible__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  font-size: 0.9em;
+  text-align: left;
+}
+
+.collapsible__header:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.collapsible__chevron {
+  font-size: 0.8em;
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--vscode-descriptionForeground);
+}
+
+.collapsible__title {
+  font-weight: 600;
+}
+
+.collapsible__summary {
+  margin-left: auto;
+  font-size: 0.8em;
+  color: var(--vscode-descriptionForeground);
+  font-weight: normal;
+}
+
+.collapsible__body {
+  padding: 4px 8px 10px 22px;
+}

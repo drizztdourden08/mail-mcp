@@ -1,0 +1,5 @@
+.text { margin-bottom: 8px; line-height: 1.4; }
+.text--hint { color: var(--vscode-descriptionForeground); font-size: 0.9em; }
+.text--error { color: var(--vscode-errorForeground); }
+.text--description { color: var(--vscode-descriptionForeground); font-size: 0.85em; }
+.text--waiting { color: var(--vscode-descriptionForeground); font-style: italic; }

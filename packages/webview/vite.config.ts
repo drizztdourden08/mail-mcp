@@ -9,7 +9,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/main.tsx"),
       formats: ["iife"],
-      name: "OutlookMcpWebview",
+      name: "MailMcpWebview",
       fileName: () => "index.js",
     },
     rollupOptions: {

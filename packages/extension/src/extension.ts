@@ -1,75 +1,91 @@
 import * as vscode from "vscode";
 import { OutlookWebviewProvider } from "./webview";
 import { IpcClient } from "./ipc-client";
-import { AuthManager } from "./auth";
+import { ServerManager } from "./server-manager";
+import { AuthBridge } from "./auth-bridge";
+import { McpRegistration } from "./mcp-registration";
 
-let ipcClient: IpcClient;
-let authManager: AuthManager;
+let serverManager: ServerManager;
+let mcpRegistration: McpRegistration;
 
 export function activate(context: vscode.ExtensionContext) {
-  authManager = new AuthManager(context);
-  ipcClient = new IpcClient();
+  const outputChannel = vscode.window.createOutputChannel("Mail MCP");
+  context.subscriptions.push(outputChannel);
+
+  const ipcClient = new IpcClient();
+  serverManager = new ServerManager(context, ipcClient, outputChannel);
+  mcpRegistration = new McpRegistration();
 
   const webviewProvider = new OutlookWebviewProvider(
     context.extensionUri,
     ipcClient,
-    authManager
   );
 
+  // Webview
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("outlook-mcp.panel", webviewProvider, {
+    vscode.window.registerWebviewViewProvider("mail-mcp.panel", webviewProvider, {
       webviewOptions: { retainContextWhenHidden: true },
-    })
+    }),
   );
 
+  // Commands
   context.subscriptions.push(
-    vscode.commands.registerCommand("outlook-mcp.login", async () => {
+    vscode.commands.registerCommand("mail-mcp.login", () => {
       webviewProvider.postToWebview({ type: "navigate", view: "login" });
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand("outlook-mcp.openPanel", async () => {
-      // Focus the sidebar
-      await vscode.commands.executeCommand("outlook-mcp.panel.focus");
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand("outlook-mcp.reviewInbox", async () => {
+    }),
+    vscode.commands.registerCommand("mail-mcp.openPanel", () => {
+      vscode.commands.executeCommand("mail-mcp.panel.focus");
+    }),
+    vscode.commands.registerCommand("mail-mcp.reviewInbox", () => {
       webviewProvider.postToWebview({ type: "navigate", view: "inbox-review" });
-      await vscode.commands.executeCommand("outlook-mcp.panel.focus");
-    })
+      vscode.commands.executeCommand("mail-mcp.panel.focus");
+    }),
+    vscode.commands.registerCommand("mail-mcp.startServer", () => serverManager.start()),
+    vscode.commands.registerCommand("mail-mcp.stopServer", () => serverManager.stop()),
+    vscode.commands.registerCommand("mail-mcp.restartServer", () => serverManager.restart()),
   );
 
-  // Try to discover MCP server's IPC port from recent stderr output
-  discoverIpcPort(context);
-}
+  // Auth polling
+  const authBridge = new AuthBridge(
+    ipcClient,
+    (loggedIn) => webviewProvider.postToWebview({ type: "auth-status", loggedIn }),
+    (code) => {
+      vscode.commands.executeCommand("outlook-mcp.panel.focus");
+      webviewProvider.postToWebview({ type: "auth-challenge", ...code });
+    },
+  );
+  authBridge.startPolling(context);
 
-async function discoverIpcPort(context: vscode.ExtensionContext) {
-  // The IPC port is stored by the MCP server. Poll for it.
-  const stored = context.workspaceState.get<number>("outlook-mcp.ipcPort");
-  if (stored) {
-    ipcClient.setPort(stored);
-  }
-
-  // Also check periodically in case MCP server restarts
-  const interval = setInterval(async () => {
+  // Server lifecycle
+  serverManager.autoStart();
+  serverManager.discoverPort(async (port) => {
     try {
-      const port = ipcClient.getPort();
-      if (port) {
-        const res = await fetch(`http://127.0.0.1:${port}/status`);
-        if (res.ok) return; // Still alive
+      const res = await fetch(`http://127.0.0.1:${port}/auth/status`, { method: "POST" });
+      if (res.ok) {
+        const data = (await res.json()) as { loggedIn: boolean };
+        webviewProvider.postToWebview({ type: "auth-status", loggedIn: data.loggedIn });
       }
-    } catch {
-      // Port no longer valid
-    }
-    // Try known port range or wait for user to set it
-  }, 30000);
+    } catch { /* ignore */ }
+    webviewProvider.postToWebview({ type: "ipc-ready" });
+    webviewProvider.refreshProviderCache();
+    webviewProvider.syncCustomInstructionsToServer(port);
+    mcpRegistration.notifyChanged();
+  });
 
-  context.subscriptions.push({ dispose: () => clearInterval(interval) });
+  // MCP provider
+  mcpRegistration.register(context);
 }
+
+// Exported for webview message handlers
+export function stopMcpServer(): void { serverManager.stop(); }
+export function startMcpServerManual(): void {
+  serverManager.start();
+  setTimeout(() => mcpRegistration.notifyChanged(), 2000);
+}
+export function restartMcpServer(): void { serverManager.restart(); }
+export function isServerRunning(): boolean { return serverManager.isRunning(); }
+export function notifyMcpServerChanged(): void { mcpRegistration.notifyChanged(); }
 
 export function deactivate() {
-  // Cleanup
+  // ServerManager disposes via context.subscriptions
 }

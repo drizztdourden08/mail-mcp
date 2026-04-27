@@ -1,7 +1,7 @@
 {
-  "name": "outlook-mcp-extension",
-  "displayName": "Outlook MCP",
-  "description": "Companion extension for the Outlook MCP server — provides embedded webview for auth, inbox review, and batch actions.",
+  "name": "mail-mcp-extension",
+  "displayName": "Mail MCP",
+  "description": "Companion extension for the Mail MCP server — provides embedded webview for auth, inbox review, and batch actions.",
   "version": "0.1.0",
   "publisher": "local",
   "engines": {
@@ -14,35 +14,79 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "outlook-mcp",
-          "title": "Outlook",
-          "icon": "$(mail)"
+          "id": "mail-mcp",
+          "title": "Mail MCP",
+          "icon": "icon.svg"
         }
       ]
     },
     "views": {
-      "outlook-mcp": [
+      "mail-mcp": [
         {
           "type": "webview",
-          "id": "outlook-mcp.panel",
-          "name": "Outlook"
+          "id": "mail-mcp.panel",
+          "name": "Mail MCP"
         }
       ]
     },
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "mail-mcp.server",
+        "label": "Mail MCP Server"
+      }
+    ],
     "commands": [
       {
-        "command": "outlook-mcp.login",
-        "title": "Outlook MCP: Sign In"
+        "command": "mail-mcp.login",
+        "title": "Mail MCP: Sign In"
       },
       {
-        "command": "outlook-mcp.openPanel",
-        "title": "Outlook MCP: Open Panel"
+        "command": "mail-mcp.openPanel",
+        "title": "Mail MCP: Open Panel"
       },
       {
-        "command": "outlook-mcp.reviewInbox",
-        "title": "Outlook MCP: Review Inbox"
+        "command": "mail-mcp.reviewInbox",
+        "title": "Mail MCP: Review Inbox"
+      },
+      {
+        "command": "mail-mcp.startServer",
+        "title": "Mail MCP: Start Server"
+      },
+      {
+        "command": "mail-mcp.stopServer",
+        "title": "Mail MCP: Stop Server"
+      },
+      {
+        "command": "mail-mcp.restartServer",
+        "title": "Mail MCP: Restart Server"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Mail MCP",
+      "properties": {
+        "mail-mcp.autoCopyCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically copy the device login code to clipboard when signing in via Copilot chat."
+        },
+        "mail-mcp.autoOpenBrowser": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open the browser to the sign-in page when signing in via Copilot chat."
+        },
+        "mail-mcp.focusOnReview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically focus the Mail panel when a new review list is created by Copilot."
+        },
+        "mail-mcp.customInstructions": {
+          "type": "string",
+          "default": "",
+          "editPresentation": "multilineText",
+          "description": "Custom instructions sent to the AI alongside the default MCP instructions. These take priority over defaults if contradictory."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

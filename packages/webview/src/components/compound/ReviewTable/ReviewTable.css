@@ -1,0 +1,82 @@
+.review-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-table__desc {
+  padding: 4px 0;
+}
+
+.review-table__toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.review-table__filter {
+  flex: 1;
+  min-width: 100px;
+}
+
+.review-table__count {
+  font-size: 0.8em;
+  color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
+}
+
+.review-table__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.review-table__header-row {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-editorGroup-border));
+  font-size: 0.75em;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.review-table__row {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0;
+  cursor: pointer;
+  border-radius: 2px;
+  align-items: flex-start;
+}
+.review-table__row:hover { background: var(--vscode-list-hoverBackground); }
+.review-table__row--selected {
+  background: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.review-table__cell {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85em;
+  padding: 0 2px;
+}
+
+.review-table__check-col {
+  flex: 0 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-table__actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--vscode-panel-border, var(--vscode-editorGroup-border));
+}

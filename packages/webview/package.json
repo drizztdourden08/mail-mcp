@@ -1,5 +1,5 @@
 {
-  "name": "@outlook-mcp/webview",
+  "name": "@mail-mcp/webview",
   "version": "0.1.0",
   "private": true,
   "type": "module",

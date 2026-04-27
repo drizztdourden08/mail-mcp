@@ -1,0 +1,20 @@
+.result-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  background: var(--token-info-bg);
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
+.result-banner__text {
+  flex: 1;
+  white-space: pre-wrap;
+}
+
+.result-banner__close {
+  padding: 0 4px;
+  font-size: 1em;
+}

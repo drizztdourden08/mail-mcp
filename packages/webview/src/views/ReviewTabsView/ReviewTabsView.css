@@ -1,0 +1,31 @@
+.review-tabs-view__empty {
+  padding: 16px 0;
+}
+
+.review-tabs-view__empty .text--hint {
+  margin-top: 4px;
+}
+
+.review-tabs-view__building {
+  padding: 12px 0;
+}
+
+.review-tabs-view__building-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.review-tabs-view__building-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--vscode-charts-yellow, #cca700);
+  animation: review-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes review-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

@@ -1,0 +1,22 @@
+.code-display__row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.code-display__code {
+  font-size: 2em;
+  font-weight: bold;
+  font-family: var(--vscode-editor-font-family, monospace);
+  padding: 12px 20px;
+  background: var(--vscode-textBlockQuote-background);
+  border-radius: 4px;
+  margin: 8px 0;
+  letter-spacing: 4px;
+}
+
+.code-display__copy {
+  align-self: flex-start;
+  margin-top: 8px;
+}

@@ -14,18 +14,26 @@ export class IpcClient {
       throw new Error("IPC port not configured. Is the MCP server running?");
     }
 
-    const res = await fetch(`http://127.0.0.1:${this.port}${route}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`IPC error ${res.status}: ${text}`);
+    try {
+      const res = await fetch(`http://127.0.0.1:${this.port}${route}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`IPC error ${res.status}: ${text}`);
+      }
+
+      return res.json() as Promise<T>;
+    } finally {
+      clearTimeout(timeout);
     }
-
-    return res.json() as Promise<T>;
   }
 
   async getStatus(): Promise<{ loggedIn: boolean; port: number }> {

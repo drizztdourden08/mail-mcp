@@ -1,0 +1,14 @@
+.vscode/**
+node_modules/**
+src/**
+**/*.ts
+**/*.map
+tsconfig.json
+.eslintrc.json
+out/**/*.d.ts
+out/**/*.map
+../webview/src/**
+../webview/node_modules/**
+../mcp-server/src/**
+../mcp-server/node_modules/**
+../../node_modules/**

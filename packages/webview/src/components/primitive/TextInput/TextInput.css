@@ -1,0 +1,16 @@
+.text-input {
+  padding: 3px 6px;
+  border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border-radius: 2px;
+  font-size: 0.85em;
+}
+
+.text-input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+}
+
+.text-input--full {
+  width: 100%;
+}

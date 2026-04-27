@@ -1,0 +1,46 @@
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-editorGroup-border));
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.tab-bar__tab {
+  background: transparent;
+  color: var(--vscode-foreground);
+  border: none;
+  padding: 4px 10px;
+  white-space: nowrap;
+  font-size: 0.85em;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.tab-bar__tab--active {
+  border-bottom-color: var(--vscode-focusBorder);
+}
+
+.tab-bar__tab--building {
+  color: var(--vscode-charts-yellow, #cca700);
+}
+
+.tab-bar__building-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--vscode-charts-yellow, #cca700);
+  margin-right: 5px;
+  animation: tab-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tab-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.tab-bar__badge {
+  margin-left: 4px;
+}

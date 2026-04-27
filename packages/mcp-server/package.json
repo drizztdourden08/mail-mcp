@@ -1,11 +1,12 @@
 {
-  "name": "@outlook-mcp/server",
+  "name": "@mail-mcp/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "tsx src/index.ts",
-    "build": "tsc"
+    "build": "tsc && node -e \"require('fs').cpSync('src/providers','dist/providers',{recursive:true,filter:(s)=>s.endsWith('.md')||require('fs').statSync(s).isDirectory()})\"",
+    "copy-assets": "node -e \"require('fs').cpSync('src/providers','dist/providers',{recursive:true,filter:(s)=>s.endsWith('.md')||require('fs').statSync(s).isDirectory()})\""
   },
   "dependencies": {
     "@azure/msal-node": "^5.1.4",
