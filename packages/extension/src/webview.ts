@@ -482,7 +482,7 @@ export class OutlookWebviewProvider implements vscode.WebviewViewProvider {
   }
 
   private async addMcpConfigForClient(client: string) {
-    const serverPath = path.resolve(__dirname, "..", "..", "mcp-server", "out", "index.js");
+    const serverPath = path.resolve(__dirname, "..", "..", "mcp-server", "dist", "index.js");
     const clientId = process.env.MAIL_MCP_CLIENT_ID || "";
     const entry = {
       command: "node",

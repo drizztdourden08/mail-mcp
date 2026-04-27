@@ -3,7 +3,7 @@ import type { ToolDefinition } from "../../types/tool.js";
 
 export const reviewAwait: ToolDefinition = {
   name: "review.await",
-  description: "Block until the user approves or rejects a review. Returns { approved: boolean, selectedIds: string[] }. Call after review.finalize.",
+  description: "Block until the user approves or rejects a review. Returns { approved: boolean, selectedIds: string[] }. Call after review.update(status: 'pending').",
   schema: {
     reviewId: z.string().describe("Review ID"),
     timeoutSeconds: z.number().optional().describe("Max seconds to wait (default 600)"),

@@ -77,8 +77,11 @@ Creates a new review with a title and column definitions.
 ### review.add_items
 Adds items (emails) to the review table. Can be called multiple times.
 
-### review.finalize
-Presents the review to you in the VS Code panel.
+### review.remove_items
+Removes items from a review by ID. The review must be in "building" state.
+
+### review.update
+Changes the review status. Transitions: building→pending (present to user), pending→building (reopen for edits), any→closed. Optionally sets whether items are selected by default.
 
 ### review.await
 Waits for your decision. The AI pauses here until you approve or reject.

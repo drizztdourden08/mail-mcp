@@ -9,7 +9,7 @@ const DEFAULT_COLUMNS = [
 
 export const reviewCreate: ToolDefinition = {
   name: "review.create",
-  description: "Create an empty review list (status=building). Returns reviewId. Follow with review.add_items to populate, then review.finalize to show to user, then review.await.",
+  description: "Create an empty review list (status=building). Returns reviewId. Follow with review.add_items to populate, then review.update(status: 'pending') to present to user, then review.await.",
   schema: {
     name: z.string().describe("Tab name shown to the user"),
     description: z.string().describe("Markdown description shown above the list"),
